@@ -48,9 +48,7 @@
   .back{position:absolute;top:22px;left:26px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--gris);background:none;border:none;cursor:pointer;display:none;z-index:5}
   .back.show{display:block}
   .ptitle{font-family:'Marcellus',serif;font-size:clamp(24px,3.2vw,38px);margin-bottom:4px;text-align:center}
-  .pmini{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--gris);margin-bottom:14px;text-align:center}
-  .combohint{font-size:12px;color:var(--gris);background:#faf4f4;border:1px solid #f0dede;border-radius:40px;padding:8px 16px;margin-bottom:28px}
-  .combohint b{color:var(--rojo)}
+  .pmini{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--gris);margin-bottom:30px;text-align:center}
 
   /* hamburguesas */
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:min(620px,100%)}
@@ -74,7 +72,8 @@
   .extrachips{display:flex;flex-direction:column;gap:7px;width:100%;align-items:center}
   .pill.mini{font-size:12px;letter-spacing:.5px;padding:10px 16px;min-height:42px;min-width:0;text-transform:none}
   .pill.mini.sel{background:var(--rojo);color:#fff;border-color:var(--rojo)}
-  .pill.addbtn{background:var(--verde);color:#fff;border-color:var(--verde);margin-top:4px}
+  .okcheck{width:56px;height:56px;border-radius:50%;background:var(--verde);color:#fff;border:none;font-size:28px;line-height:1;cursor:pointer;margin-top:6px;display:flex;align-items:center;justify-content:center}
+  .okcheck:active{transform:scale(.92)}
 
   .pill{font-family:'Space Grotesk';font-size:15px;letter-spacing:1px;text-transform:uppercase;padding:15px 28px;border-radius:50px;border:1.5px solid var(--ink);background:#fff;color:var(--ink);cursor:pointer;min-height:54px;min-width:130px;transition:.18s}
   .pill:active{transform:scale(.97)}.pill.sel{background:var(--ink);color:#fff}
@@ -154,7 +153,7 @@
     .advance:active{transform:scale(.97)}
     .addcombo{right:14px;left:14px;top:auto;bottom:80px;width:auto;height:54px;border-radius:40px;font-size:24px}
     .qrbtn{display:none}
-    .ptitle{font-size:26px}.pmini{font-size:11px}.combohint{font-size:11px;padding:7px 13px}
+    .ptitle{font-size:26px}.pmini{font-size:11px}
     .rail .leben{font-size:23px}.ch{font-size:13px}.cl{font-size:12px}.total .tv{font-size:23px}
     .burger .nm{font-size:15px}.burger .pr{font-size:12px}
     .qrow .ql{font-size:20px}
@@ -188,7 +187,6 @@
     <div class="panel active" id="p1">
       <div class="ptitle">La hamburguesa</div>
       <div class="pmini">Elegí y sumá al ticket</div>
-      <div class="combohint">🎁 <b>Hamburguesa + papas + (gaseosa o rubia)</b> = precio combo</div>
       <div class="grid2" id="burgers"></div>
     </div>
 
@@ -293,7 +291,7 @@
           '<button class="pill" data-s="simple">Simple · '+money(b.price)+'</button>'+
           '<button class="pill" data-s="doble">Doble · '+money(b.price+MENU.dobleExtra)+'</button></div>'+
         '<div class="extraview"><div class="sttl">¿Extras?</div><div class="extrachips">'+chips+'</div>'+
-          '<button class="pill addbtn" data-add="1">Agregar ✓</button></div>'+
+          '<button class="okcheck" data-add="1">✓</button></div>'+
       '</div>';
     el.onclick=function(e){var t=e.target,sz=el.querySelector('.sizes');
       if(t.dataset.s){el.dataset.size=t.dataset.s;el.dataset.sizeprice=(t.dataset.s==='doble'?b.price+MENU.dobleExtra:b.price);sz.classList.add('pickextras');return;}
