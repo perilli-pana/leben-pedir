@@ -91,9 +91,11 @@
   .dlabel{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gris);text-align:left;margin:16px 4px 12px}
   .dgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
   .dgrid.g3{grid-template-columns:repeat(3,1fr)}
-  .drink{border:1.5px solid var(--linea);border-radius:16px;padding:14px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:4px;transition:.18s}
-  .drink.sel{border-color:var(--rojo);background:var(--rojosoft)}
-  .drink .di{font-size:26px}.drink .dn{font-size:12px;letter-spacing:1px;text-transform:uppercase}.drink .dp{font-size:11px;color:var(--gris)}
+  .dgrid.g2{grid-template-columns:repeat(2,1fr);max-width:340px;margin:0 auto}
+  .drink{padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:5px;transition:.18s}
+  .drink.sel .dn,.drink.sel .dp{color:var(--rojo)}
+  .drink .di{font-size:40px;filter:drop-shadow(0 11px 9px rgba(0,0,0,.13))}
+  .drink .dn{font-size:12px;letter-spacing:1px;text-transform:uppercase}.drink .dp{font-size:11px;color:var(--gris)}
   .drink .cflag{font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--rojo)}
   .dstep{display:flex;align-items:center;gap:10px;margin-top:6px}
   .dstep button{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--linea);background:#fff;font-size:18px;cursor:pointer;line-height:1}
@@ -187,15 +189,10 @@
       <div class="grid2" id="burgers"></div>
     </div>
 
-    <!-- 02 PAPAS -->
+    <!-- 02 ACOMPAÑAMIENTO -->
     <div class="panel" id="p2">
-      <div class="ptitle">El acompañamiento</div>
-      <div class="pmini">Sumá las que quieras</div>
-      <div class="qrow"><div><div class="ql">Papas fritas</div><div class="qp" id="pp-papas"></div></div>
-        <div class="stepper"><button onclick="stepSide('papas',-1)">−</button><span class="n" id="q-papas">0</span><button onclick="stepSide('papas',1)">+</button></div></div>
-      <div class="qrow"><div><div class="ql">Nuggets</div><div class="qp" id="pp-nuggets"></div></div>
-        <div class="stepper"><button onclick="stepSide('nuggets',-1)">−</button><span class="n" id="q-nuggets">0</span><button onclick="stepSide('nuggets',1)">+</button></div></div>
-      <div class="dblock" style="margin-top:24px">
+      <div class="dblock">
+        <div class="dlabel">Para acompañar</div><div class="dgrid g2" id="sides"></div>
         <div class="dlabel">Empanada frita</div><div class="dgrid" id="empanadas"></div>
         <div class="dlabel">Pizza</div><div class="dgrid g3" id="pizzas"></div>
       </div>
@@ -203,19 +200,14 @@
 
     <!-- 03 BEBIDA -->
     <div class="panel" id="p3">
-      <div class="ptitle">La bebida</div>
-      <div class="pmini">Cervezas nuestras y gaseosas</div>
       <div class="dblock">
         <div class="dlabel">Cervezas de la casa</div><div class="dgrid" id="beers"></div>
         <div class="dlabel">Sin alcohol</div><div class="dgrid" id="sodas"></div>
-        <div class="drinkhint">Sumá las que quieras con el +.</div>
       </div>
     </div>
 
     <!-- 04 NOMBRE + COMENTARIOS -->
     <div class="panel" id="p4">
-      <div class="ptitle">Último paso</div>
-      <div class="pmini">¿A nombre de quién?</div>
       <div class="form">
         <div class="flbl">Tu nombre</div>
         <input id="name" placeholder="Ej: Marcos" oninput="renderTicket()">
@@ -282,7 +274,7 @@
     var chips=MENU.extras.map(function(x){return '<button class="pill mini" data-x="'+x.name+'" data-xp="'+x.price+'">+ '+x.name+' · '+money(x.price)+'</button>';}).join('');
     MENU.burgers.forEach(function(b){
     var el=document.createElement('div');el.className='burger';
-    el.innerHTML=(b.star?'<div class="star">★ Estrella</div>':'')+'<div class="em">🍔</div><div class="nm">'+b.name+'</div>'+
+    el.innerHTML=(b.star?'<div class="star">best seller</div>':'')+'<div class="em">🍔</div><div class="nm">'+b.name+'</div>'+
       '<div class="sizes">'+
         '<div class="sizeview"><div class="sttl">'+b.name+'</div>'+
           '<button class="pill" data-s="simple">Simple · '+money(b.price)+'</button>'+
@@ -314,8 +306,15 @@
   makeCards(MENU.sodas,'sodas','drinks',function(d){return d.name==='Agua'?'💧':'🥤'});
   makeCards(MENU.empanadas,'empanadas','empanadas',function(){return '🥟'});
   makeCards(MENU.pizzas,'pizzas','pizzas',function(){return '🍕'});
+  (function(){var g=document.getElementById('sides');
+    [{name:'Papas fritas',key:'papas',emoji:'🍟'},{name:'Nuggets de pollo',key:'nuggets',emoji:'🍗'}].forEach(function(d){
+      var el=document.createElement('div');el.className='drink';
+      el.innerHTML='<span class="di">'+d.emoji+'</span><span class="dn">'+d.name+'</span><span class="dp">'+money(MENU.sides[d.key])+'</span><div class="dstep"><button>−</button><span class="dq">0</span><button>+</button></div>';
+      var dq=el.querySelector('.dq'),btns=el.querySelectorAll('.dstep button');
+      btns[0].onclick=function(){sideStep(d.key,-1,dq,el)};btns[1].onclick=function(){sideStep(d.key,1,dq,el)};
+      g.appendChild(el);});})();
   function stepItem(storeKey,name,delta,dq,el){var s=draft[storeKey],v=Math.max(0,(s[name]||0)+delta);if(v)s[name]=v;else delete s[name];dq.textContent=v;el.classList.toggle('sel',v>0);renderTicket();}
-  function stepSide(key,d){draft[key]=Math.max(0,draft[key]+d);document.getElementById('q-'+key).textContent=draft[key];renderTicket();}
+  function sideStep(key,delta,dq,el){draft[key]=Math.max(0,draft[key]+delta);dq.textContent=draft[key];el.classList.toggle('sel',draft[key]>0);renderTicket();}
 
   /* combos / totales */
   function priceIn(arr,name){for(var i=0;i<arr.length;i++)if(arr[i].name===name)return arr[i].price;return 0;}
@@ -361,8 +360,6 @@
     document.getElementById('total').textContent=money(total);
     document.getElementById('fin').classList.toggle('show', order.combos.length>0||hasDraft());
     updateFloating();
-    document.getElementById('pp-papas').textContent=money(MENU.sides.papas)+' c/u';
-    document.getElementById('pp-nuggets').textContent=money(MENU.sides.nuggets)+' c/u';
   }
   function delCombo(i){order.combos.splice(i,1);renderTicket();}
 
@@ -370,7 +367,6 @@
   function pushDraft(){if(!hasDraft())return;order.combos.push({burger:draft.burger,papas:draft.papas,nuggets:draft.nuggets,drinks:Object.assign({},draft.drinks),empanadas:Object.assign({},draft.empanadas),pizzas:Object.assign({},draft.pizzas)});draft=freshDraft();resetDraftUI();}
   function resetDraftUI(){
     document.querySelectorAll('.burger').forEach(function(x){x.classList.remove('open','chosen');x.querySelector('.sizes').classList.remove('pickextras');x.querySelectorAll('.extrachips .pill').forEach(function(c){c.classList.remove('sel')});});
-    document.getElementById('q-papas').textContent='0';document.getElementById('q-nuggets').textContent='0';
     document.querySelectorAll('.drink').forEach(function(x){x.classList.remove('sel');x.querySelector('.dq').textContent='0';});
   }
   function addCombo(){pushDraft();renderTicket();show(1);}
