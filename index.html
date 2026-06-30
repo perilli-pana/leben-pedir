@@ -51,17 +51,16 @@
   .pmini{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--gris);margin-bottom:30px;text-align:center}
 
   /* hamburguesas */
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:min(620px,100%)}
-  .burger{position:relative;border:1.5px solid var(--linea);border-radius:22px;padding:20px;display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:.2s;min-height:210px;justify-content:center}
-  .burger:active{transform:scale(.985)}
-  .burger.chosen{border-color:var(--rojo);background:var(--rojosoft)}
-  .burger .star{position:absolute;top:12px;left:12px;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--rojo);border:1px solid var(--rojo);border-radius:20px;padding:3px 7px}
-  .burger .em{font-size:clamp(54px,7vw,86px);filter:drop-shadow(0 16px 12px rgba(0,0,0,.16));animation:flotar 4.6s ease-in-out infinite,girar 10s linear infinite}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:30px;width:min(680px,100%)}
+  .burger{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:.2s;min-height:270px;padding:8px}
+  .burger:active{transform:scale(.99)}
+  .burger.chosen .nm{color:var(--rojo)}
+  .burger .star{position:absolute;top:2px;left:50%;transform:translateX(-50%);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--rojo)}
+  .burger .em{font-size:clamp(82px,12vw,160px);filter:drop-shadow(0 20px 15px rgba(0,0,0,.16));animation:flotar 4.6s ease-in-out infinite,girar 10s linear infinite}
   .burger:nth-child(2) .em{animation-delay:-1.2s,-3s}.burger:nth-child(3) .em{animation-delay:-2.4s,-6s}.burger:nth-child(4) .em{animation-delay:-3.6s,-1.5s}
   @keyframes flotar{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
   @keyframes girar{from{transform:rotateY(0)}to{transform:rotateY(360deg)}}
-  .burger .nm{margin-top:10px;font-family:'Marcellus',serif;font-size:clamp(15px,1.9vw,21px)}
-  .burger .pr{margin-top:3px;font-size:13px;color:var(--gris)}
+  .burger .nm{margin-top:16px;font-family:'Marcellus',serif;font-size:clamp(17px,2.2vw,25px)}
   .sizes{position:absolute;inset:0;background:rgba(255,255,255,.97);border-radius:22px;display:none;flex-direction:column;justify-content:center;align-items:center;gap:11px;padding:16px}
   .burger.open .sizes{display:flex}
   .sizes .sttl{font-family:'Marcellus',serif;font-size:17px;margin-bottom:2px}
@@ -145,7 +144,7 @@
     .rail .leben{font-size:25px}.rail .rsub{margin:2px 0 8px}
     .stage{height:auto}
     .panel{min-height:auto;padding:30px 16px 150px}
-    .burger{min-height:150px;padding:14px}
+    .burger{min-height:200px;padding:6px}
     .dgrid{grid-template-columns:repeat(2,1fr)}
     .dots{position:static;transform:none;margin-bottom:12px}
     .back{position:static;margin-bottom:6px}
@@ -155,7 +154,7 @@
     .qrbtn{display:none}
     .ptitle{font-size:26px}.pmini{font-size:11px}
     .rail .leben{font-size:23px}.ch{font-size:13px}.cl{font-size:12px}.total .tv{font-size:23px}
-    .burger .nm{font-size:15px}.burger .pr{font-size:12px}
+    .burger .nm{font-size:16px}
     .qrow .ql{font-size:20px}
   }
   @media(max-width:430px){
@@ -185,8 +184,6 @@
 
     <!-- 01 HAMBURGUESA -->
     <div class="panel active" id="p1">
-      <div class="ptitle">La hamburguesa</div>
-      <div class="pmini">Elegí y sumá al ticket</div>
       <div class="grid2" id="burgers"></div>
     </div>
 
@@ -285,7 +282,7 @@
     var chips=MENU.extras.map(function(x){return '<button class="pill mini" data-x="'+x.name+'" data-xp="'+x.price+'">+ '+x.name+' · '+money(x.price)+'</button>';}).join('');
     MENU.burgers.forEach(function(b){
     var el=document.createElement('div');el.className='burger';
-    el.innerHTML=(b.star?'<div class="star">★ Estrella</div>':'')+'<div class="em">🍔</div><div class="nm">'+b.name+'</div><div class="pr">'+money(b.price)+'</div>'+
+    el.innerHTML=(b.star?'<div class="star">★ Estrella</div>':'')+'<div class="em">🍔</div><div class="nm">'+b.name+'</div>'+
       '<div class="sizes">'+
         '<div class="sizeview"><div class="sttl">'+b.name+'</div>'+
           '<button class="pill" data-s="simple">Simple · '+money(b.price)+'</button>'+
