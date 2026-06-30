@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Leben — kiosko</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Playfair+Display:ital,wght@1,500;1,600&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#0d0d0d;--paper:#fff;--gris:#9a9a9a;--linea:#ececec;--rojo:#b81d2c;--rojosoft:#fdf3f3;--verde:#1f9d57;
+        --helv:'Helvetica Neue',Helvetica,Arial,sans-serif}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{background:var(--paper);color:var(--ink);font-family:'Space Grotesk',sans-serif;-webkit-font-smoothing:antialiased;display:flex;overflow:hidden}
+
+  /* ---------- TICKET (IZQUIERDA) — Helvetica ---------- */
+  .rail{width:330px;height:100vh;border-right:1px solid var(--linea);display:flex;flex-direction:column;padding:26px 22px 20px;background:#fff;flex-shrink:0;font-family:var(--helv)}
+  .rail .leben{font-family:'Playfair Display',serif;font-style:italic;font-weight:600;font-size:34px;color:var(--rojo);text-align:center;line-height:1}
+  .rail .rsub{text-align:center;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gris);margin:3px 0 16px;font-family:var(--helv)}
+  .items{flex:1;overflow-y:auto;margin-right:-6px;padding-right:6px}
+  .pname{font-size:13px;font-weight:600;text-align:center;margin-bottom:10px;letter-spacing:.5px}
+  .combo{padding:11px 0;border-bottom:1px solid var(--linea)}
+  .combo.draft{border:1px dashed #d9d9d9;border-radius:12px;background:#fafafa;padding:11px 12px;margin-top:8px;animation:fade .3s ease}
+  .ch{display:flex;justify-content:space-between;align-items:baseline;font-weight:600;font-size:14px;letter-spacing:.2px}
+  .cr{font-weight:700;white-space:nowrap}
+  .cx{color:var(--gris);cursor:pointer;font-weight:400;margin-left:8px}
+  .encurso{font-size:9px;color:var(--gris);border:1px solid var(--linea);border-radius:20px;padding:2px 7px;margin-left:6px;text-transform:uppercase;letter-spacing:1px;font-weight:400}
+  .cl{display:flex;justify-content:space-between;font-weight:300;font-size:13px;color:#6a6a6a;padding:4px 0 4px 12px}
+  .cl.disc{color:var(--verde);font-weight:500}
+  .empty{color:#d0d0d0;font-size:13px;text-align:center;margin-top:50px;letter-spacing:1px;line-height:1.7}
+  .pnote{margin-top:12px;font-size:12px;color:var(--gris);font-style:italic;line-height:1.5}
+  .total{display:flex;justify-content:space-between;align-items:baseline;padding:14px 0 12px;border-top:2px solid var(--ink);margin-top:8px}
+  .total .tt{font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:600}
+  .total .tv{font-size:26px;font-weight:700}
+  .railbtns{display:flex;flex-direction:column;gap:8px}
+  .otro{width:100%;background:#fff;color:var(--ink);border:1.5px solid var(--ink);font-family:var(--helv);font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:13px;border-radius:50px;cursor:pointer;display:none}
+  .otro.show{display:block}
+  .finalizar{width:100%;background:var(--rojo);color:#fff;border:none;font-family:var(--helv);font-weight:600;font-size:13px;letter-spacing:2px;text-transform:uppercase;padding:16px;border-radius:50px;cursor:pointer;display:none}
+  .finalizar.show{display:block}
+
+  /* ---------- STAGE ---------- */
+  .stage{flex:1;height:100vh;overflow-y:auto;position:relative}
+  .panel{display:none;min-height:100vh;flex-direction:column;justify-content:center;align-items:center;padding:64px 170px 64px 50px}
+  .panel.active{display:flex;animation:fade .4s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .dots{position:absolute;top:26px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:5}
+  .dots i{width:8px;height:8px;border-radius:50%;background:var(--linea);transition:.3s}
+  .dots i.on{background:var(--rojo);transform:scale(1.3)}
+  .back{position:absolute;top:22px;left:26px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--gris);background:none;border:none;cursor:pointer;display:none;z-index:5}
+  .back.show{display:block}
+  .ptitle{font-family:'Marcellus',serif;font-size:clamp(24px,3.2vw,38px);margin-bottom:4px;text-align:center}
+  .pmini{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--gris);margin-bottom:14px;text-align:center}
+  .combohint{font-size:12px;color:var(--gris);background:#faf4f4;border:1px solid #f0dede;border-radius:40px;padding:8px 16px;margin-bottom:28px}
+  .combohint b{color:var(--rojo)}
+
+  /* hamburguesas */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:min(620px,100%)}
+  .burger{position:relative;border:1.5px solid var(--linea);border-radius:22px;padding:20px;display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:.2s;min-height:210px;justify-content:center}
+  .burger:active{transform:scale(.985)}
+  .burger.chosen{border-color:var(--rojo);background:var(--rojosoft)}
+  .burger .star{position:absolute;top:12px;left:12px;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--rojo);border:1px solid var(--rojo);border-radius:20px;padding:3px 7px}
+  .burger .em{font-size:clamp(54px,7vw,86px);filter:drop-shadow(0 16px 12px rgba(0,0,0,.16));animation:flotar 4.6s ease-in-out infinite,girar 10s linear infinite}
+  .burger:nth-child(2) .em{animation-delay:-1.2s,-3s}.burger:nth-child(3) .em{animation-delay:-2.4s,-6s}.burger:nth-child(4) .em{animation-delay:-3.6s,-1.5s}
+  @keyframes flotar{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+  @keyframes girar{from{transform:rotateY(0)}to{transform:rotateY(360deg)}}
+  .burger .nm{margin-top:10px;font-family:'Marcellus',serif;font-size:clamp(15px,1.9vw,21px)}
+  .burger .pr{margin-top:3px;font-size:13px;color:var(--gris)}
+  .sizes{position:absolute;inset:0;background:rgba(255,255,255,.97);border-radius:22px;display:none;flex-direction:column;justify-content:center;align-items:center;gap:11px;padding:16px}
+  .burger.open .sizes{display:flex}
+  .sizes .sttl{font-family:'Marcellus',serif;font-size:17px;margin-bottom:2px}
+
+  .pill{font-family:'Space Grotesk';font-size:15px;letter-spacing:1px;text-transform:uppercase;padding:15px 28px;border-radius:50px;border:1.5px solid var(--ink);background:#fff;color:var(--ink);cursor:pointer;min-height:54px;min-width:130px;transition:.18s}
+  .pill:active{transform:scale(.97)}.pill.sel{background:var(--ink);color:#fff}
+
+  /* steppers */
+  .qrow{display:flex;justify-content:space-between;align-items:center;width:min(540px,100%);padding:22px 4px;border-bottom:1px solid var(--linea)}
+  .qrow .ql{font-family:'Marcellus',serif;font-size:clamp(20px,2.4vw,27px)}
+  .qrow .qp{font-size:12px;color:var(--gris)}
+  .stepper{display:flex;align-items:center;gap:16px}
+  .stepper button{width:54px;height:54px;border-radius:50%;border:1.5px solid var(--ink);background:#fff;font-size:26px;cursor:pointer;line-height:1;transition:.15s}
+  .stepper button:active{transform:scale(.92);background:var(--ink);color:#fff}
+  .stepper .n{font-family:'Marcellus',serif;font-size:26px;min-width:30px;text-align:center}
+
+  /* bebidas */
+  .dblock{width:min(700px,100%)}
+  .dlabel{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gris);text-align:left;margin:16px 4px 12px}
+  .dgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
+  .drink{border:1.5px solid var(--linea);border-radius:16px;padding:14px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:4px;transition:.18s}
+  .drink.sel{border-color:var(--rojo);background:var(--rojosoft)}
+  .drink .di{font-size:26px}.drink .dn{font-size:12px;letter-spacing:1px;text-transform:uppercase}.drink .dp{font-size:11px;color:var(--gris)}
+  .drink .cflag{font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--rojo)}
+  .dstep{display:flex;align-items:center;gap:10px;margin-top:6px}
+  .dstep button{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--linea);background:#fff;font-size:18px;cursor:pointer;line-height:1}
+  .dstep button:active{background:var(--ink);color:#fff}
+  .dstep .dq{font-family:'Marcellus',serif;font-size:17px;min-width:18px;text-align:center}
+  .drinkhint{font-size:11px;color:var(--gris);text-align:center;margin-top:18px;letter-spacing:1px}
+
+  /* nombre + comentarios */
+  .form{width:min(540px,100%);display:flex;flex-direction:column;gap:16px}
+  .form input,.form textarea{width:100%;border:1.5px solid var(--linea);border-radius:16px;padding:18px;font-family:'Space Grotesk';font-size:17px;outline:none}
+  .form textarea{min-height:110px;resize:none}
+  .form input:focus,.form textarea:focus{border-color:var(--ink)}
+  .flbl{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gris);margin-bottom:-6px;text-align:left}
+  .confirmbtn{margin-top:8px;background:var(--rojo);color:#fff;border-color:var(--rojo)}
+
+  /* ---------- FLECHA ABAJO (DERECHA) ---------- */
+  .advance{position:fixed;right:34px;top:50%;transform:translateY(-50%);z-index:60;background:var(--rojo);color:#fff;border:none;cursor:pointer;width:118px;height:118px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:42px;box-shadow:0 18px 40px rgba(184,29,44,.34);transition:.18s}
+  .advance:active{transform:translateY(-50%) scale(.94)}
+  .advance.hide{display:none}
+
+  /* QR */
+  .qrbtn{position:fixed;left:354px;bottom:22px;z-index:55;background:#fff;border:1.5px solid var(--ink);border-radius:50px;padding:12px 18px;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;display:flex;gap:8px;align-items:center}
+  .qrov{position:fixed;inset:0;z-index:90;background:rgba(255,255,255,.97);display:none;flex-direction:column;justify-content:center;align-items:center;gap:16px;text-align:center;padding:30px}
+  .qrov.show{display:flex}
+  .qrov .leben{font-family:'Playfair Display',serif;font-style:italic;font-weight:600;font-size:46px;color:var(--rojo)}
+  .qrov img{width:240px;height:240px;border:1px solid var(--linea);border-radius:12px}
+  .qrov .qx{margin-top:6px;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--gris);background:none;border:none;cursor:pointer}
+
+  /* final */
+  .done{position:fixed;inset:0;z-index:95;background:#fff;display:none;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:30px;animation:fade .4s ease}
+  .done.show{display:flex}
+  .done .leben{font-family:'Playfair Display',serif;font-style:italic;font-weight:600;font-size:58px;color:var(--rojo)}
+  .done .big{font-family:'Marcellus',serif;font-size:32px;margin-top:16px}
+  .done .num{font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--gris);margin-top:10px}
+  .done .reset{margin-top:38px;background:var(--ink);color:#fff;border:none;font-size:13px;letter-spacing:2px;text-transform:uppercase;padding:18px 40px;border-radius:50px;cursor:pointer}
+
+  /* ---------- RESPONSIVE ---------- */
+  @media(max-width:860px){
+    html,body{overflow:auto;height:auto}
+    body{flex-direction:column}
+    .rail{width:100%;height:auto;position:sticky;top:0;z-index:40;max-height:44vh;border-right:none;border-bottom:2px solid var(--ink);padding:14px 16px}
+    .rail .leben{font-size:25px}.rail .rsub{margin:2px 0 8px}
+    .stage{height:auto}
+    .panel{min-height:auto;padding:30px 16px 150px}
+    .burger{min-height:150px;padding:14px}
+    .dgrid{grid-template-columns:repeat(2,1fr)}
+    .dots{position:static;transform:none;margin-bottom:12px}
+    .back{position:static;margin-bottom:6px}
+    .advance{right:14px;left:14px;top:auto;bottom:14px;transform:none;width:auto;height:60px;border-radius:40px;font-size:26px}
+    .advance:active{transform:scale(.97)}
+    .qrbtn{left:14px;bottom:84px}
+  }
+</style>
+</head>
+<body>
+
+  <!-- TICKET -->
+  <aside class="rail">
+    <div class="leben">Leben</div>
+    <div class="rsub">tu pedido</div>
+    <div class="items" id="items"></div>
+    <div class="total"><span class="tt">Total</span><span class="tv" id="total">$0</span></div>
+    <div class="railbtns">
+      <button class="otro" id="otro" onclick="otroCombo()">+ Empezar otro combo</button>
+      <button class="finalizar" id="fin" onclick="finalizar()">Finalizar pedido →</button>
+    </div>
+  </aside>
+
+  <!-- STAGE -->
+  <div class="stage">
+    <div class="dots"><i class="on"></i><i></i><i></i></div>
+    <button class="back" id="back" onclick="goBack()">← atrás</button>
+
+    <!-- 01 HAMBURGUESA -->
+    <div class="panel active" id="p1">
+      <div class="ptitle">La hamburguesa</div>
+      <div class="pmini">Elegí y sumá al ticket</div>
+      <div class="combohint">🎁 <b>Hamburguesa + papas + (gaseosa o rubia)</b> = precio combo</div>
+      <div class="grid2" id="burgers"></div>
+    </div>
+
+    <!-- 02 PAPAS -->
+    <div class="panel" id="p2">
+      <div class="ptitle">El acompañamiento</div>
+      <div class="pmini">Sumá las que quieras</div>
+      <div class="qrow"><div><div class="ql">Papas fritas</div><div class="qp" id="pp-papas"></div></div>
+        <div class="stepper"><button onclick="stepSide('papas',-1)">−</button><span class="n" id="q-papas">0</span><button onclick="stepSide('papas',1)">+</button></div></div>
+      <div class="qrow"><div><div class="ql">Nuggets</div><div class="qp" id="pp-nuggets"></div></div>
+        <div class="stepper"><button onclick="stepSide('nuggets',-1)">−</button><span class="n" id="q-nuggets">0</span><button onclick="stepSide('nuggets',1)">+</button></div></div>
+    </div>
+
+    <!-- 03 BEBIDA -->
+    <div class="panel" id="p3">
+      <div class="ptitle">La bebida</div>
+      <div class="pmini">Cervezas nuestras y gaseosas</div>
+      <div class="dblock">
+        <div class="dlabel">Cervezas de la casa</div><div class="dgrid" id="beers"></div>
+        <div class="dlabel">Sin alcohol</div><div class="dgrid" id="sodas"></div>
+        <div class="drinkhint">Sumá las que quieras con el +.</div>
+      </div>
+    </div>
+
+    <!-- 04 NOMBRE + COMENTARIOS -->
+    <div class="panel" id="p4">
+      <div class="ptitle">Último paso</div>
+      <div class="pmini">¿A nombre de quién?</div>
+      <div class="form">
+        <div class="flbl">Tu nombre</div>
+        <input id="name" placeholder="Ej: Marcos" oninput="renderTicket()">
+        <div class="flbl">Comentarios</div>
+        <textarea id="notes" placeholder="Alergias, sacarle algo, lo que sea…" oninput="renderTicket()"></textarea>
+        <button class="pill confirmbtn" onclick="confirmar()">Confirmar pedido ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLECHA -->
+  <button class="advance" id="adv" onclick="advance()">↓</button>
+
+  <!-- QR -->
+  <button class="qrbtn" onclick="document.getElementById('qrov').classList.add('show')">📱 Pedí desde tu celu</button>
+  <div class="qrov" id="qrov">
+    <div class="leben">Leben</div>
+    <div style="font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--gris)">Escaneá y pedí desde tu teléfono</div>
+    <img id="qrimg" alt="QR">
+    <button class="qx" onclick="document.getElementById('qrov').classList.remove('show')">cerrar ✕</button>
+  </div>
+
+  <!-- FINAL -->
+  <div class="done" id="done">
+    <div class="leben">Leben</div>
+    <div class="big" id="doneBig">Retiralo por la ventana ↗</div>
+    <div class="num" id="doneNum"></div>
+    <button class="reset" onclick="reset()">↺ Nuevo pedido</button>
+  </div>
+
+<script>
+  /* ===== CONFIG EDITABLE ===== */
+  var MENU={
+    burgers:[
+      {name:"emilio's",           price:16000, star:true},
+      {name:"cheeseburger",       price:13000},
+      {name:"blt",                price:14000},
+      {name:"bacon cheeseburger", price:15000}
+    ],
+    dobleExtra:4000,
+    sides:{papas:4000, nuggets:5000},
+    comboDiscount:3000,                          // descuento si el combo califica
+    beers:[{name:"Rubia",price:3500,combo:true},{name:"Roja",price:4500},{name:"IPA",price:6000},{name:"Negra",price:5500}],
+    sodas:[{name:"Coca",price:4000,combo:true},{name:"Sprite",price:4000,combo:true},{name:"Fanta",price:4000,combo:true},{name:"Agua",price:4000,combo:true}]
+  };
+  var PEDIR_URL="https://perilli-pana.github.io/leben-pedir/";
+  /* =========================== */
+
+  var COMBO_DRINKS={}; MENU.beers.concat(MENU.sodas).forEach(function(d){if(d.combo)COMBO_DRINKS[d.name]=true;});
+  var order={combos:[], name:"", notes:""};
+  var draft={burger:null,papas:0,nuggets:0,drinks:{}};
+  var current=1, dots=document.querySelectorAll('.dots i');
+  function money(n){return '$'+n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
+  function drinkPrice(name){var a=MENU.beers.concat(MENU.sodas),i;for(i=0;i<a.length;i++)if(a[i].name===name)return a[i].price;return 0;}
+
+  /* hamburguesas */
+  (function(){var bc=document.getElementById('burgers');MENU.burgers.forEach(function(b){
+    var el=document.createElement('div');el.className='burger';
+    el.innerHTML=(b.star?'<div class="star">★ Estrella</div>':'')+'<div class="em">🍔</div><div class="nm">'+b.name+'</div><div class="pr">'+money(b.price)+'</div>'+
+      '<div class="sizes"><div class="sttl">'+b.name+'</div><button class="pill" data-s="simple">Simple · '+money(b.price)+'</button><button class="pill" data-s="doble">Doble · '+money(b.price+MENU.dobleExtra)+'</button></div>';
+    el.onclick=function(e){
+      if(e.target.dataset.s){var s=e.target.dataset.s;draft.burger={name:b.name,size:s,price:b.price+(s==='doble'?MENU.dobleExtra:0)};
+        document.querySelectorAll('.burger').forEach(function(x){x.classList.remove('open','chosen')});el.classList.add('chosen');renderTicket();return;}
+      document.querySelectorAll('.burger').forEach(function(x){if(x!==el)x.classList.remove('open')});el.classList.toggle('open');
+    };bc.appendChild(el);});})();
+
+  /* bebidas con cantidad */
+  function renderDrinks(arr,box){var g=document.getElementById(box);arr.forEach(function(d){
+    var el=document.createElement('div');el.className='drink';
+    el.innerHTML='<span class="di">'+(box==='beers'?'🍺':(d.name==='Agua'?'💧':'🥤'))+'</span><span class="dn">'+d.name+'</span><span class="dp">'+money(d.price)+'</span>'+
+      (d.combo?'<span class="cflag">combo</span>':'')+
+      '<div class="dstep"><button>−</button><span class="dq">0</span><button>+</button></div>';
+    var dq=el.querySelector('.dq'),btns=el.querySelectorAll('.dstep button');
+    btns[0].onclick=function(){stepDrink(d.name,-1,dq,el)};btns[1].onclick=function(){stepDrink(d.name,1,dq,el)};
+    g.appendChild(el);});}
+  renderDrinks(MENU.beers,'beers');renderDrinks(MENU.sodas,'sodas');
+  function stepDrink(name,delta,dq,el){var v=Math.max(0,(draft.drinks[name]||0)+delta);if(v)draft.drinks[name]=v;else delete draft.drinks[name];dq.textContent=v;el.classList.toggle('sel',v>0);renderTicket();}
+  function stepSide(key,d){draft[key]=Math.max(0,draft[key]+d);document.getElementById('q-'+key).textContent=draft[key];renderTicket();}
+
+  /* combos / totales */
+  function qualifies(c){if(!c.burger||c.papas<1)return false;for(var k in c.drinks)if(COMBO_DRINKS[k])return true;return false;}
+  function groupTotal(c){var t=c.burger?c.burger.price:0;t+=c.papas*MENU.sides.papas+c.nuggets*MENU.sides.nuggets;for(var k in c.drinks)t+=c.drinks[k]*drinkPrice(k);if(qualifies(c))t-=MENU.comboDiscount;return t;}
+  function hasDraft(){return draft.burger||draft.papas||draft.nuggets||Object.keys(draft.drinks).length;}
+
+  function groupHTML(c,idx){
+    var st=groupTotal(c),lines='';
+    var title=c.burger?(c.burger.name+' · '+c.burger.size):'Suelto';
+    var right=(idx===null?'<span class="encurso">en curso</span>':'<span class="cx" onclick="delCombo('+idx+')">✕</span>');
+    var price=c.burger?money(c.burger.price):money(st);
+    var head='<div class="ch"><span class="ct">'+title+'</span><span class="cr">'+(c.burger?price:'')+right+'</span></div>';
+    if(c.papas)lines+='<div class="cl"><span>papas ×'+c.papas+'</span><span>'+money(c.papas*MENU.sides.papas)+'</span></div>';
+    if(c.nuggets)lines+='<div class="cl"><span>nuggets ×'+c.nuggets+'</span><span>'+money(c.nuggets*MENU.sides.nuggets)+'</span></div>';
+    for(var k in c.drinks)lines+='<div class="cl"><span>'+k+' ×'+c.drinks[k]+'</span><span>'+money(c.drinks[k]*drinkPrice(k))+'</span></div>';
+    if(qualifies(c))lines+='<div class="cl disc"><span>🎁 Combo</span><span>−'+money(MENU.comboDiscount)+'</span></div>';
+    return '<div class="combo'+(idx===null?' draft':'')+'">'+head+lines+'</div>';
+  }
+
+  function renderTicket(){
+    var box=document.getElementById('items'),html='',total=0;
+    order.name=document.getElementById('name').value.trim();
+    order.notes=document.getElementById('notes').value.trim();
+    if(order.name)html+='<div class="pname">Pedido de '+order.name+'</div>';
+    order.combos.forEach(function(c,i){total+=groupTotal(c);html+=groupHTML(c,i);});
+    if(hasDraft()){total+=groupTotal(draft);html+=groupHTML(draft,null);}
+    if(!html||(!order.combos.length&&!hasDraft()))html='<div class="empty">Tu ticket está vacío.<br>Tocá una hamburguesa →</div>';
+    if(order.notes)html+='<div class="pnote">“'+order.notes+'”</div>';
+    box.innerHTML=html;
+    document.getElementById('total').textContent=money(total);
+    document.getElementById('otro').classList.toggle('show', hasDraft());
+    document.getElementById('fin').classList.toggle('show', order.combos.length>0||hasDraft());
+    document.getElementById('pp-papas').textContent=money(MENU.sides.papas)+' c/u';
+    document.getElementById('pp-nuggets').textContent=money(MENU.sides.nuggets)+' c/u';
+  }
+  function delCombo(i){order.combos.splice(i,1);renderTicket();}
+
+  /* draft -> combo */
+  function pushDraft(){if(!hasDraft())return;order.combos.push({burger:draft.burger,papas:draft.papas,nuggets:draft.nuggets,drinks:Object.assign({},draft.drinks)});draft={burger:null,papas:0,nuggets:0,drinks:{}};resetDraftUI();}
+  function resetDraftUI(){
+    document.querySelectorAll('.burger').forEach(function(x){x.classList.remove('open','chosen')});
+    document.getElementById('q-papas').textContent='0';document.getElementById('q-nuggets').textContent='0';
+    document.querySelectorAll('.drink').forEach(function(x){x.classList.remove('sel');x.querySelector('.dq').textContent='0';});
+  }
+  function otroCombo(){pushDraft();renderTicket();show(1);}
+
+  /* navegación: la flecha solo baja (cicla 1→2→3→1) */
+  function show(n){
+    document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});
+    document.getElementById('p'+n).classList.add('active');
+    document.querySelector('.stage').scrollTop=0;
+    for(var i=0;i<dots.length;i++)dots[i].classList.toggle('on',i<(n>3?0:n));
+    document.querySelector('.dots').style.visibility=(n>3?'hidden':'visible');
+    document.getElementById('back').classList.toggle('show',n>3);
+    document.getElementById('adv').classList.toggle('hide',n>3);
+    current=n;
+  }
+  function advance(){if(current<=3)show(current===3?1:current+1);}
+  function goBack(){if(current>3)show(1);}
+
+  function finalizar(){pushDraft();if(!order.combos.length)return;renderTicket();show(4);}
+  function confirmar(){
+    var n=order.combos.length;
+    document.getElementById('doneBig').textContent=(order.name?order.name+', ':'')+'retiralo por la ventana ↗';
+    document.getElementById('doneNum').textContent='Pedido #'+(100+n)+' · '+n+(n===1?' combo':' combos');
+    document.getElementById('done').classList.add('show');
+  }
+  function reset(){
+    order={combos:[],name:"",notes:""};draft={burger:null,papas:0,nuggets:0,drinks:{}};
+    document.getElementById('name').value='';document.getElementById('notes').value='';
+    resetDraftUI();document.getElementById('done').classList.remove('show');renderTicket();show(1);
+  }
+
+  document.getElementById('qrimg').src='https://api.qrserver.com/v1/create-qr-code/?size=240x240&data='+encodeURIComponent(PEDIR_URL);
+  renderTicket();
+</script>
+</body>
+</html>
