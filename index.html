@@ -34,8 +34,6 @@
   .total .tt{font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:600}
   .total .tv{font-size:26px;font-weight:700}
   .railbtns{display:flex;flex-direction:column;gap:8px}
-  .otro{width:100%;background:#fff;color:var(--ink);border:1.5px solid var(--ink);font-family:var(--helv);font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:13px;border-radius:50px;cursor:pointer;display:none}
-  .otro.show{display:block}
   .finalizar{width:100%;background:var(--rojo);color:#fff;border:none;font-family:var(--helv);font-weight:600;font-size:13px;letter-spacing:2px;text-transform:uppercase;padding:16px;border-radius:50px;cursor:pointer;display:none}
   .finalizar.show{display:block}
 
@@ -109,6 +107,12 @@
   .advance:active{transform:translateY(-50%) scale(.94)}
   .advance.hide{display:none}
 
+  /* CHECK VERDE — agregar combo */
+  .addcombo{position:fixed;right:41px;top:calc(50% + 88px);z-index:61;width:84px;height:84px;border-radius:50%;background:var(--verde);color:#fff;border:none;cursor:pointer;font-size:36px;line-height:1;display:none;align-items:center;justify-content:center;box-shadow:0 14px 34px rgba(31,157,87,.36);animation:pop .28s ease}
+  .addcombo.show{display:flex}
+  .addcombo:active{transform:scale(.92)}
+  @keyframes pop{from{transform:scale(.55);opacity:0}to{transform:scale(1);opacity:1}}
+
   /* QR */
   .qrbtn{position:fixed;left:354px;bottom:22px;z-index:55;background:#fff;border:1.5px solid var(--ink);border-radius:50px;padding:12px 18px;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;display:flex;gap:8px;align-items:center}
   .qrov{position:fixed;inset:0;z-index:90;background:rgba(255,255,255,.97);display:none;flex-direction:column;justify-content:center;align-items:center;gap:16px;text-align:center;padding:30px}
@@ -137,9 +141,19 @@
     .dgrid{grid-template-columns:repeat(2,1fr)}
     .dots{position:static;transform:none;margin-bottom:12px}
     .back{position:static;margin-bottom:6px}
-    .advance{right:14px;left:14px;top:auto;bottom:14px;transform:none;width:auto;height:60px;border-radius:40px;font-size:26px}
+    .advance{right:14px;left:14px;top:auto;bottom:14px;transform:none;width:auto;height:58px;border-radius:40px;font-size:24px}
     .advance:active{transform:scale(.97)}
-    .qrbtn{left:14px;bottom:84px}
+    .addcombo{right:14px;left:14px;top:auto;bottom:80px;width:auto;height:54px;border-radius:40px;font-size:24px}
+    .qrbtn{display:none}
+    .ptitle{font-size:26px}.pmini{font-size:11px}.combohint{font-size:11px;padding:7px 13px}
+    .rail .leben{font-size:23px}.ch{font-size:13px}.cl{font-size:12px}.total .tv{font-size:23px}
+    .burger .nm{font-size:15px}.burger .pr{font-size:12px}
+    .qrow .ql{font-size:20px}
+  }
+  @media(max-width:430px){
+    .ptitle{font-size:23px}
+    .stepper button{width:48px;height:48px;font-size:23px}
+    .drink .dn{font-size:11px}
   }
 </style>
 </head>
@@ -152,7 +166,6 @@
     <div class="items" id="items"></div>
     <div class="total"><span class="tt">Total</span><span class="tv" id="total">$0</span></div>
     <div class="railbtns">
-      <button class="otro" id="otro" onclick="otroCombo()">+ Empezar otro combo</button>
       <button class="finalizar" id="fin" onclick="finalizar()">Finalizar pedido →</button>
     </div>
   </aside>
@@ -205,8 +218,9 @@
     </div>
   </div>
 
-  <!-- FLECHA -->
+  <!-- FLECHA + CHECK -->
   <button class="advance" id="adv" onclick="advance()">↓</button>
+  <button class="addcombo" id="addc" onclick="addCombo()" title="Agregar combo">✓</button>
 
   <!-- QR -->
   <button class="qrbtn" onclick="document.getElementById('qrov').classList.add('show')">📱 Pedí desde tu celu</button>
@@ -303,8 +317,8 @@
     if(order.notes)html+='<div class="pnote">“'+order.notes+'”</div>';
     box.innerHTML=html;
     document.getElementById('total').textContent=money(total);
-    document.getElementById('otro').classList.toggle('show', hasDraft());
     document.getElementById('fin').classList.toggle('show', order.combos.length>0||hasDraft());
+    updateFloating();
     document.getElementById('pp-papas').textContent=money(MENU.sides.papas)+' c/u';
     document.getElementById('pp-nuggets').textContent=money(MENU.sides.nuggets)+' c/u';
   }
@@ -317,9 +331,14 @@
     document.getElementById('q-papas').textContent='0';document.getElementById('q-nuggets').textContent='0';
     document.querySelectorAll('.drink').forEach(function(x){x.classList.remove('sel');x.querySelector('.dq').textContent='0';});
   }
-  function otroCombo(){pushDraft();renderTicket();show(1);}
+  function addCombo(){pushDraft();renderTicket();show(1);}
+  function updateFloating(){
+    var build=current<=3;
+    document.getElementById('adv').classList.toggle('hide',!build);
+    document.getElementById('addc').classList.toggle('show', build && !!hasDraft());
+  }
 
-  /* navegación: la flecha solo baja (cicla 1→2→3→1) */
+  /* navegación: la flecha solo baja (1→2→3); en el último paso cierra el combo y arranca otro */
   function show(n){
     document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});
     document.getElementById('p'+n).classList.add('active');
@@ -327,10 +346,13 @@
     for(var i=0;i<dots.length;i++)dots[i].classList.toggle('on',i<(n>3?0:n));
     document.querySelector('.dots').style.visibility=(n>3?'hidden':'visible');
     document.getElementById('back').classList.toggle('show',n>3);
-    document.getElementById('adv').classList.toggle('hide',n>3);
-    current=n;
+    current=n;updateFloating();
   }
-  function advance(){if(current<=3)show(current===3?1:current+1);}
+  function advance(){
+    if(current===1)show(2);
+    else if(current===2)show(3);
+    else if(current===3){ if(hasDraft()){pushDraft();renderTicket();} show(1); }
+  }
   function goBack(){if(current>3)show(1);}
 
   function finalizar(){pushDraft();if(!order.combos.length)return;renderTicket();show(4);}
