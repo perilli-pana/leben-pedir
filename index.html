@@ -67,6 +67,14 @@
   .sizes{position:absolute;inset:0;background:rgba(255,255,255,.97);border-radius:22px;display:none;flex-direction:column;justify-content:center;align-items:center;gap:11px;padding:16px}
   .burger.open .sizes{display:flex}
   .sizes .sttl{font-family:'Marcellus',serif;font-size:17px;margin-bottom:2px}
+  .sizeview,.extraview{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
+  .extraview{display:none}
+  .sizes.pickextras .sizeview{display:none}
+  .sizes.pickextras .extraview{display:flex}
+  .extrachips{display:flex;flex-direction:column;gap:7px;width:100%;align-items:center}
+  .pill.mini{font-size:12px;letter-spacing:.5px;padding:10px 16px;min-height:42px;min-width:0;text-transform:none}
+  .pill.mini.sel{background:var(--rojo);color:#fff;border-color:var(--rojo)}
+  .pill.addbtn{background:var(--verde);color:#fff;border-color:var(--verde);margin-top:4px}
 
   .pill{font-family:'Space Grotesk';font-size:15px;letter-spacing:1px;text-transform:uppercase;padding:15px 28px;border-radius:50px;border:1.5px solid var(--ink);background:#fff;color:var(--ink);cursor:pointer;min-height:54px;min-width:130px;transition:.18s}
   .pill:active{transform:scale(.97)}.pill.sel{background:var(--ink);color:#fff}
@@ -84,6 +92,7 @@
   .dblock{width:min(700px,100%)}
   .dlabel{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gris);text-align:left;margin:16px 4px 12px}
   .dgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
+  .dgrid.g3{grid-template-columns:repeat(3,1fr)}
   .drink{border:1.5px solid var(--linea);border-radius:16px;padding:14px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:4px;transition:.18s}
   .drink.sel{border-color:var(--rojo);background:var(--rojosoft)}
   .drink .di{font-size:26px}.drink .dn{font-size:12px;letter-spacing:1px;text-transform:uppercase}.drink .dp{font-size:11px;color:var(--gris)}
@@ -107,8 +116,8 @@
   .advance:active{transform:translateY(-50%) scale(.94)}
   .advance.hide{display:none}
 
-  /* CHECK VERDE — agregar combo */
-  .addcombo{position:fixed;right:41px;top:calc(50% + 88px);z-index:61;width:84px;height:84px;border-radius:50%;background:var(--verde);color:#fff;border:none;cursor:pointer;font-size:36px;line-height:1;display:none;align-items:center;justify-content:center;box-shadow:0 14px 34px rgba(31,157,87,.36);animation:pop .28s ease}
+  /* CHECK VERDE — agregar combo (mismo tamaño que la flecha) */
+  .addcombo{position:fixed;right:34px;top:calc(50% + 70px);z-index:61;width:118px;height:118px;border-radius:50%;background:var(--verde);color:#fff;border:none;cursor:pointer;font-size:48px;line-height:1;display:none;align-items:center;justify-content:center;box-shadow:0 16px 38px rgba(31,157,87,.36);animation:pop .28s ease}
   .addcombo.show{display:flex}
   .addcombo:active{transform:scale(.92)}
   @keyframes pop{from{transform:scale(.55);opacity:0}to{transform:scale(1);opacity:1}}
@@ -191,6 +200,10 @@
         <div class="stepper"><button onclick="stepSide('papas',-1)">−</button><span class="n" id="q-papas">0</span><button onclick="stepSide('papas',1)">+</button></div></div>
       <div class="qrow"><div><div class="ql">Nuggets</div><div class="qp" id="pp-nuggets"></div></div>
         <div class="stepper"><button onclick="stepSide('nuggets',-1)">−</button><span class="n" id="q-nuggets">0</span><button onclick="stepSide('nuggets',1)">+</button></div></div>
+      <div class="dblock" style="margin-top:24px">
+        <div class="dlabel">Empanada frita</div><div class="dgrid" id="empanadas"></div>
+        <div class="dlabel">Pizza</div><div class="dgrid g3" id="pizzas"></div>
+      </div>
     </div>
 
     <!-- 03 BEBIDA -->
@@ -251,6 +264,9 @@
     dobleExtra:4000,
     sides:{papas:4000, nuggets:5000},
     comboDiscount:3000,                          // descuento si el combo califica
+    extras:[{name:"Cheddar",price:1500},{name:"Bacon",price:2500},{name:"Salsa",price:1000}],
+    empanadas:[{name:"Carne",price:2800},{name:"Jamón y queso",price:2800},{name:"Cuatro quesos",price:2800},{name:"Cebolla y queso",price:2800}],
+    pizzas:[{name:"Pepperoni",price:9000},{name:"Margherita",price:8500},{name:"Cuatro quesos",price:9000}],
     beers:[{name:"Rubia",price:3500,combo:true},{name:"Roja",price:4500},{name:"IPA",price:6000},{name:"Negra",price:5500}],
     sodas:[{name:"Coca",price:4000,combo:true},{name:"Sprite",price:4000,combo:true},{name:"Fanta",price:4000,combo:true},{name:"Agua",price:4000,combo:true}]
   };
@@ -259,49 +275,80 @@
 
   var COMBO_DRINKS={}; MENU.beers.concat(MENU.sodas).forEach(function(d){if(d.combo)COMBO_DRINKS[d.name]=true;});
   var order={combos:[], name:"", notes:""};
-  var draft={burger:null,papas:0,nuggets:0,drinks:{}};
+  var draft={burger:null,papas:0,nuggets:0,drinks:{},empanadas:{},pizzas:{}};
+  function freshDraft(){return {burger:null,papas:0,nuggets:0,drinks:{},empanadas:{},pizzas:{}};}
   var current=1, dots=document.querySelectorAll('.dots i');
   function money(n){return '$'+n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
   function drinkPrice(name){var a=MENU.beers.concat(MENU.sodas),i;for(i=0;i<a.length;i++)if(a[i].name===name)return a[i].price;return 0;}
 
-  /* hamburguesas */
-  (function(){var bc=document.getElementById('burgers');MENU.burgers.forEach(function(b){
+  /* hamburguesas con tamaño + extras */
+  function closeOverlays(except){document.querySelectorAll('.burger').forEach(function(x){if(x!==except){x.classList.remove('open');x.querySelector('.sizes').classList.remove('pickextras');}});}
+  (function(){var bc=document.getElementById('burgers');
+    var chips=MENU.extras.map(function(x){return '<button class="pill mini" data-x="'+x.name+'" data-xp="'+x.price+'">+ '+x.name+' · '+money(x.price)+'</button>';}).join('');
+    MENU.burgers.forEach(function(b){
     var el=document.createElement('div');el.className='burger';
     el.innerHTML=(b.star?'<div class="star">★ Estrella</div>':'')+'<div class="em">🍔</div><div class="nm">'+b.name+'</div><div class="pr">'+money(b.price)+'</div>'+
-      '<div class="sizes"><div class="sttl">'+b.name+'</div><button class="pill" data-s="simple">Simple · '+money(b.price)+'</button><button class="pill" data-s="doble">Doble · '+money(b.price+MENU.dobleExtra)+'</button></div>';
-    el.onclick=function(e){
-      if(e.target.dataset.s){var s=e.target.dataset.s;draft.burger={name:b.name,size:s,price:b.price+(s==='doble'?MENU.dobleExtra:0)};
-        document.querySelectorAll('.burger').forEach(function(x){x.classList.remove('open','chosen')});el.classList.add('chosen');renderTicket();return;}
-      document.querySelectorAll('.burger').forEach(function(x){if(x!==el)x.classList.remove('open')});el.classList.toggle('open');
+      '<div class="sizes">'+
+        '<div class="sizeview"><div class="sttl">'+b.name+'</div>'+
+          '<button class="pill" data-s="simple">Simple · '+money(b.price)+'</button>'+
+          '<button class="pill" data-s="doble">Doble · '+money(b.price+MENU.dobleExtra)+'</button></div>'+
+        '<div class="extraview"><div class="sttl">¿Extras?</div><div class="extrachips">'+chips+'</div>'+
+          '<button class="pill addbtn" data-add="1">Agregar ✓</button></div>'+
+      '</div>';
+    el.onclick=function(e){var t=e.target,sz=el.querySelector('.sizes');
+      if(t.dataset.s){el.dataset.size=t.dataset.s;el.dataset.sizeprice=(t.dataset.s==='doble'?b.price+MENU.dobleExtra:b.price);sz.classList.add('pickextras');return;}
+      if(t.dataset.x!==undefined){t.classList.toggle('sel');return;}
+      if(t.dataset.add!==undefined){
+        var extras=[];el.querySelectorAll('.extrachips .pill.sel').forEach(function(c){extras.push({name:c.dataset.x,price:+c.dataset.xp});});
+        draft.burger={name:b.name,size:el.dataset.size,price:+el.dataset.sizeprice,extras:extras};
+        document.querySelectorAll('.burger').forEach(function(x){x.classList.remove('open','chosen');x.querySelector('.sizes').classList.remove('pickextras');x.querySelectorAll('.extrachips .pill').forEach(function(c){c.classList.remove('sel')});});
+        el.classList.add('chosen');renderTicket();return;}
+      closeOverlays(el);sz.classList.remove('pickextras');el.classList.toggle('open');
     };bc.appendChild(el);});})();
 
-  /* bebidas con cantidad */
-  function renderDrinks(arr,box){var g=document.getElementById(box);arr.forEach(function(d){
+  /* cards con cantidad (bebidas / empanadas / pizzas) */
+  function makeCards(arr,box,storeKey,emojiFn){var g=document.getElementById(box);arr.forEach(function(d){
     var el=document.createElement('div');el.className='drink';
-    el.innerHTML='<span class="di">'+(box==='beers'?'🍺':(d.name==='Agua'?'💧':'🥤'))+'</span><span class="dn">'+d.name+'</span><span class="dp">'+money(d.price)+'</span>'+
+    el.innerHTML='<span class="di">'+emojiFn(d)+'</span><span class="dn">'+d.name+'</span><span class="dp">'+money(d.price)+'</span>'+
       (d.combo?'<span class="cflag">combo</span>':'')+
       '<div class="dstep"><button>−</button><span class="dq">0</span><button>+</button></div>';
     var dq=el.querySelector('.dq'),btns=el.querySelectorAll('.dstep button');
-    btns[0].onclick=function(){stepDrink(d.name,-1,dq,el)};btns[1].onclick=function(){stepDrink(d.name,1,dq,el)};
+    btns[0].onclick=function(){stepItem(storeKey,d.name,-1,dq,el)};btns[1].onclick=function(){stepItem(storeKey,d.name,1,dq,el)};
     g.appendChild(el);});}
-  renderDrinks(MENU.beers,'beers');renderDrinks(MENU.sodas,'sodas');
-  function stepDrink(name,delta,dq,el){var v=Math.max(0,(draft.drinks[name]||0)+delta);if(v)draft.drinks[name]=v;else delete draft.drinks[name];dq.textContent=v;el.classList.toggle('sel',v>0);renderTicket();}
+  makeCards(MENU.beers,'beers','drinks',function(){return '🍺'});
+  makeCards(MENU.sodas,'sodas','drinks',function(d){return d.name==='Agua'?'💧':'🥤'});
+  makeCards(MENU.empanadas,'empanadas','empanadas',function(){return '🥟'});
+  makeCards(MENU.pizzas,'pizzas','pizzas',function(){return '🍕'});
+  function stepItem(storeKey,name,delta,dq,el){var s=draft[storeKey],v=Math.max(0,(s[name]||0)+delta);if(v)s[name]=v;else delete s[name];dq.textContent=v;el.classList.toggle('sel',v>0);renderTicket();}
   function stepSide(key,d){draft[key]=Math.max(0,draft[key]+d);document.getElementById('q-'+key).textContent=draft[key];renderTicket();}
 
   /* combos / totales */
+  function priceIn(arr,name){for(var i=0;i<arr.length;i++)if(arr[i].name===name)return arr[i].price;return 0;}
   function qualifies(c){if(!c.burger||c.papas<1)return false;for(var k in c.drinks)if(COMBO_DRINKS[k])return true;return false;}
-  function groupTotal(c){var t=c.burger?c.burger.price:0;t+=c.papas*MENU.sides.papas+c.nuggets*MENU.sides.nuggets;for(var k in c.drinks)t+=c.drinks[k]*drinkPrice(k);if(qualifies(c))t-=MENU.comboDiscount;return t;}
-  function hasDraft(){return draft.burger||draft.papas||draft.nuggets||Object.keys(draft.drinks).length;}
+  function groupTotal(c){
+    var t=0,k;
+    if(c.burger){t+=c.burger.price;(c.burger.extras||[]).forEach(function(x){t+=x.price});}
+    t+=c.papas*MENU.sides.papas+c.nuggets*MENU.sides.nuggets;
+    for(k in c.drinks)t+=c.drinks[k]*drinkPrice(k);
+    for(k in (c.empanadas||{}))t+=c.empanadas[k]*priceIn(MENU.empanadas,k);
+    for(k in (c.pizzas||{}))t+=c.pizzas[k]*priceIn(MENU.pizzas,k);
+    if(qualifies(c))t-=MENU.comboDiscount;
+    return t;
+  }
+  function hasDraft(){return draft.burger||draft.papas||draft.nuggets||Object.keys(draft.drinks).length||Object.keys(draft.empanadas).length||Object.keys(draft.pizzas).length;}
+  function liLine(label,price){return '<div class="cl"><span>'+label+'</span><span>'+money(price)+'</span></div>';}
 
   function groupHTML(c,idx){
-    var st=groupTotal(c),lines='';
+    var st=groupTotal(c),lines='',k;
     var title=c.burger?(c.burger.name+' · '+c.burger.size):'Suelto';
     var right=(idx===null?'<span class="encurso">en curso</span>':'<span class="cx" onclick="delCombo('+idx+')">✕</span>');
-    var price=c.burger?money(c.burger.price):money(st);
-    var head='<div class="ch"><span class="ct">'+title+'</span><span class="cr">'+(c.burger?price:'')+right+'</span></div>';
-    if(c.papas)lines+='<div class="cl"><span>papas ×'+c.papas+'</span><span>'+money(c.papas*MENU.sides.papas)+'</span></div>';
-    if(c.nuggets)lines+='<div class="cl"><span>nuggets ×'+c.nuggets+'</span><span>'+money(c.nuggets*MENU.sides.nuggets)+'</span></div>';
-    for(var k in c.drinks)lines+='<div class="cl"><span>'+k+' ×'+c.drinks[k]+'</span><span>'+money(c.drinks[k]*drinkPrice(k))+'</span></div>';
+    var head='<div class="ch"><span class="ct">'+title+'</span><span class="cr">'+(c.burger?money(c.burger.price):'')+right+'</span></div>';
+    if(c.burger&&c.burger.extras)c.burger.extras.forEach(function(x){lines+=liLine('+ '+x.name.toLowerCase(),x.price);});
+    if(c.papas)lines+=liLine('papas ×'+c.papas,c.papas*MENU.sides.papas);
+    if(c.nuggets)lines+=liLine('nuggets ×'+c.nuggets,c.nuggets*MENU.sides.nuggets);
+    for(k in (c.empanadas||{}))lines+=liLine('empanada '+k.toLowerCase()+' ×'+c.empanadas[k],c.empanadas[k]*priceIn(MENU.empanadas,k));
+    for(k in (c.pizzas||{}))lines+=liLine('pizza '+k.toLowerCase()+' ×'+c.pizzas[k],c.pizzas[k]*priceIn(MENU.pizzas,k));
+    for(k in c.drinks)lines+=liLine(k+' ×'+c.drinks[k],c.drinks[k]*drinkPrice(k));
     if(qualifies(c))lines+='<div class="cl disc"><span>🎁 Combo</span><span>−'+money(MENU.comboDiscount)+'</span></div>';
     return '<div class="combo'+(idx===null?' draft':'')+'">'+head+lines+'</div>';
   }
@@ -325,9 +372,9 @@
   function delCombo(i){order.combos.splice(i,1);renderTicket();}
 
   /* draft -> combo */
-  function pushDraft(){if(!hasDraft())return;order.combos.push({burger:draft.burger,papas:draft.papas,nuggets:draft.nuggets,drinks:Object.assign({},draft.drinks)});draft={burger:null,papas:0,nuggets:0,drinks:{}};resetDraftUI();}
+  function pushDraft(){if(!hasDraft())return;order.combos.push({burger:draft.burger,papas:draft.papas,nuggets:draft.nuggets,drinks:Object.assign({},draft.drinks),empanadas:Object.assign({},draft.empanadas),pizzas:Object.assign({},draft.pizzas)});draft=freshDraft();resetDraftUI();}
   function resetDraftUI(){
-    document.querySelectorAll('.burger').forEach(function(x){x.classList.remove('open','chosen')});
+    document.querySelectorAll('.burger').forEach(function(x){x.classList.remove('open','chosen');x.querySelector('.sizes').classList.remove('pickextras');x.querySelectorAll('.extrachips .pill').forEach(function(c){c.classList.remove('sel')});});
     document.getElementById('q-papas').textContent='0';document.getElementById('q-nuggets').textContent='0';
     document.querySelectorAll('.drink').forEach(function(x){x.classList.remove('sel');x.querySelector('.dq').textContent='0';});
   }
@@ -351,7 +398,7 @@
   function advance(){
     if(current===1)show(2);
     else if(current===2)show(3);
-    else if(current===3){ if(hasDraft()){pushDraft();renderTicket();} show(1); }
+    else if(current===3)show(1);   /* nunca cierra el combo: el verde es el único que cierra */
   }
   function goBack(){if(current>3)show(1);}
 
@@ -363,7 +410,7 @@
     document.getElementById('done').classList.add('show');
   }
   function reset(){
-    order={combos:[],name:"",notes:""};draft={burger:null,papas:0,nuggets:0,drinks:{}};
+    order={combos:[],name:"",notes:""};draft=freshDraft();
     document.getElementById('name').value='';document.getElementById('notes').value='';
     resetDraftUI();document.getElementById('done').classList.remove('show');renderTicket();show(1);
   }
